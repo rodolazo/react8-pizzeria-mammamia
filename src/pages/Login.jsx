@@ -1,75 +1,89 @@
-import { useState, useContext } from "react";
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { useState, useContext,useEffect } from "react";
 import { UserContext } from "../context/UserContext";
+import { useNavigate, Link } from "react-router-dom";
 
 
 const Login = () => {
-	const [email, setEmail] =useState("");
-	const [password, setPassword] = useState("");	
-	const [error, setError] = useState("false");
-	const [mensaje, setMensaje] =useState("");
-	const {login} = useContext(UserContext);
+	const { login, loading, error, isAuthenticated } = useContext(UserContext);
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [localError, setLocalError] = useState(null);
 
-	const validarDatos = (e)=>{
-		e.preventDefault()
-		if (!email.trim() || !password.trim()){
-			setMensaje("Todos los campos deben de estar completos");
-			setError(true);
-			return
-		}
-		if (password.length < 6){
-			setMensaje("La contraseña debe de contener más de 6 caracteres");
-			setError(true);
-			return
-		}		
-		setError(false);
-		setEmail("");
-		setPassword("");		
-		setMensaje("");
-		alert("Formulario enviado correctamente");
-	}
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const onSubmit =  async (e)=>{
+  	e.preventDefault();
+    setLocalError(null);
+
+    if (!form.email || !form.password) {
+      setLocalError("Completa email y contraseña.");
+      return;
+    }
+
+    try {
+      await login({ email: form.email, password: form.password });
+      // redirección automática en useEffect
+    } catch {
+      // el mensaje viene de `error` en el contexto
+    }
+
+  }  
+
   return (
-    <>
-    	<Container className="mt-5">
-    		<h1 className="mt-5">Formulario de Login</h1>
-    		{error?<p className="error">{mensaje}</p>:null}
-		    <Form onSubmit={validarDatos}>
-		    	<Row className="mb-3 justify-content-center">
-		    		<Col md={6}>
-		    			<Form.Label>Email</Form.Label>
-						<Form.Control
-						type="text"
-						name="email"
-						className="mb-3"
-						onChange={(e)=>setEmail(e.target.value)}
-						value = {email}
-						/>		    			
-		    		</Col>
-		    	</Row>
-		    	<Row className="mb-3 justify-content-center">
-		    		<Col md={6}>
-		    			<Form.Label>Password</Form.Label>
-						<Form.Control
-						type="text"
-						name="password"
-						className="mb-3"
-						onChange={(e)=>setPassword(e.target.value)}
-						value = {password}
-						/>		    			
-		    		</Col>
-		    	</Row>
-				<Button 
-					type="submit"
-					onClick={login}
-					className="btn btn-primary mb-5"
-					variant="primary"
-					>Enviar
-				</Button>				
-			</Form>
-    	</Container>
-	    
-    </>
+    <div className="container" style={{ maxWidth: 420, margin: "2rem auto" }}>
+      <h2>Iniciar sesión</h2>
+
+      <form onSubmit={onSubmit}>
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            required
+            autoComplete="email"
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="password">Contraseña</label>
+          <input
+            id="password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            required
+            autoComplete="current-password"
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+
+        {(localError || error) && (
+          <p style={{ color: "crimson", marginBottom: 12 }}>
+            {localError || error}
+          </p>
+        )}
+
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
+      </form>
+
+      <p style={{ marginTop: 12 }}>
+        ¿No tienes cuenta? <Link to="/register">Crear cuenta</Link>
+      </p>
+    </div>
   );
+
+
+
 };
 
 export default Login;

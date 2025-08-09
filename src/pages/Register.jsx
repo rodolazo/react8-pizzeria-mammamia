@@ -1,93 +1,89 @@
-import { useState } from "react";
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { useState, useContext,useEffect } from "react";
+import { UserContext } from "../context/UserContext";
+import { useNavigate, Link } from "react-router-dom";
+
 
 const Register = () => {
-	const [email, setEmail] =useState("");
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
-	const [error, setError] = useState("false");
-	const [mensaje, setMensaje] =useState("");
+	const { register, loading, error, isAuthenticated } = useContext(UserContext);
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [localError, setLocalError] = useState(null);
 
-	const validarDatos = (e)=>{
-		e.preventDefault()
-		if (!email.trim() || !password.trim() || !confirmPassword.trim()){
-			setMensaje("Todos los campos deben de estar completos");
-			setError(true);
-			return
-		}
-		if (password.length < 6){
-			setMensaje("La contraseña debe de contener más de 6 caracteres");
-			setError(true);
-			return
-		}
+  const navigate = useNavigate();
 
-		if (password !== confirmPassword){
-			setMensaje("La contraseña no coincide con el valor a confirmar");
-			setError(true);
-			return
-		}
-		setError(false);
-		setEmail("");
-		setPassword("");
-		setConfirmPassword("");
-		setMensaje("");
-		alert("Formulario enviado correctamente");
-	}
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const onSubmit =  async (e)=>{
+  	e.preventDefault();
+    setLocalError(null);
+
+    if (!form.email || !form.password) {
+      setLocalError("Completa email y contraseña.");
+      return;
+    }
+
+    try {
+      await register({ email: form.email, password: form.password });
+      // redirección automática en useEffect
+    } catch {
+      // el mensaje viene de `error` en el contexto
+    }
+
+  }  
+
   return (
-    <>
-    	<Container className="mt-5">
-    		<h1 className="mt-5">Formulario de Registro</h1>
-    		{error?<p className="error">{mensaje}</p>:null}
-		    <Form onSubmit={validarDatos}>
-		    	<Row className="mb-3 justify-content-center">
-		    		<Col md={6}>
-		    			<Form.Label>Email</Form.Label>
-						<Form.Control
-						type="text"
-						name="email"
-						className="mb-3"
-						onChange={(e)=>setEmail(e.target.value)}
-						value = {email}
-						/>		    			
-		    		</Col>
-		    	</Row>
-		    	<Row className="mb-3 justify-content-center">
-		    		<Col md={6}>
-		    			<Form.Label>Password</Form.Label>
-						<Form.Control
-						type="text"
-						name="password"
-						className="mb-3"
-						onChange={(e)=>setPassword(e.target.value)}
-						value = {password}
-						/>		    			
-		    		</Col>
-		    	</Row>
-		    	<Row className="mb-3 justify-content-center">
-		    		<Col md={6}>
-		    			<Form.Label>Confirm Password</Form.Label>
-						<Form.Control
-						type="text"
-						name="confirm_password"
-						className="mb-3"
-						onChange={(e)=>setConfirmPassword(e.target.value)}
-						value = {confirmPassword}
-						/>		    			
-		    		</Col>
-		    	</Row>
+    <div className="container" style={{ maxWidth: 420, margin: "2rem auto" }}>
+      <h2>Registrar Usuario</h2>
 
-				
-				<Button 
-					type="submit"
-					className="btn btn-primary mb-5"
-					variant="primary"
-					>Enviar
-				</Button>				
-			</Form>
-    	</Container>
-	    
-    </>
+      <form onSubmit={onSubmit}>
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            required
+            autoComplete="email"
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="password">Contraseña</label>
+          <input
+            id="password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            required
+            autoComplete="current-password"
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+
+        {(localError || error) && (
+          <p style={{ color: "crimson", marginBottom: 12 }}>
+            {localError || error}
+          </p>
+        )}
+
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: 10 }}>
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
+      </form>
+
+      <p style={{ marginTop: 12 }}>
+        ¿Ya tienes cuenta? <Link to="/login">Login</Link>
+      </p>
+    </div>
   );
+
+
+
 };
 
 export default Register;
