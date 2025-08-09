@@ -28,6 +28,8 @@ const CartProvider = ({children}) => {
     setTotal(nuevoTotal);
   }, [cart]);
 
+
+
   return (
     <>
     	<CartContext.Provider value={{ cart, setCart, total, setTotal, addToCart }}>

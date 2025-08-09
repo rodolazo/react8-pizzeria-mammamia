@@ -2,10 +2,12 @@ import { useContext } from "react";
 import { Button } from 'react-bootstrap';
 import { CartContext } from "../context/CartContext.jsx";
 import { UserContext } from "../context/UserContext.jsx";
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { cart, setCart, total, setTotal } = useContext(CartContext);
   const { token } = useContext(UserContext);
+  const navigate = useNavigate();
 
 
   const handleCantidad = (index, accion) => {
@@ -43,7 +45,25 @@ const Cart = () => {
     }
 
     setCart([...nuevoCart]);
-  };  
+  };
+
+
+  const enviarCarrito = async ()=>{
+    const res = await fetch("http://localhost:5000/api/checkouts",{
+      method: "POST",
+      headers: {
+          "Authorization" : `Bearer ${token}`
+      },
+      body : JSON.stringify(cart)
+    });
+
+    const data = await res.json();
+    console.log(data);
+    alert(data.message);
+    setCart([])
+    navigate("/");
+  };
+
 
   return (
     <section className="cart">
@@ -85,7 +105,7 @@ const Cart = () => {
       </ul>
       <div className="cart__resumen">
         <p>Total: <span id="total">{`Total: $ ${total.toLocaleString("es-ES")}`}</span></p>
-        <Button disabled={!token} className="btn btn-dark" onClick={() => alert(`Total: $ ${total.toLocaleString("es-ES")}`)}>Finalizar compra</Button>
+        <Button disabled={total===0} className="btn btn-dark" onClick={enviarCarrito}>Finalizar compra</Button>
       </div>
     </section>
   );
