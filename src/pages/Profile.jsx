@@ -1,13 +1,19 @@
 //import { useState } from "react";
+import { useContext } from "react";
+import { UserContext } from "../context/UserContext";
 
 const Profile = () => {
+  const {email, logout} = useContext(UserContext)
   return (
     <>
       <div style={styles.container}>
         <h2>Perfil de Usuario</h2>
-        <p><strong>Email: rodolfo.lazo@yahoo.com</strong> </p>
+        <p><strong>Email: {email} </strong> </p>
 
-        <button  style={styles.button}>
+        <button  
+          style={styles.button}
+          onClick={logout}
+        >
           Cerrar sesión
         </button>
       </div>
